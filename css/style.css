@@ -234,7 +234,9 @@ input[type=password] { font: inherit; font-size: 14px; border: 1px solid #d1d5db
 /* 상단 전환 */
 .brand-row { display: flex; justify-content: space-between; align-items: center; }
 .brand-row h1 { margin: 0; }
-.brand { border: none; background: none; padding: 2px 0; font-size: 20px; font-weight: 800; color: var(--mute); }
+.brand { border: none; background: none; padding: 2px 0; font: inherit; font-size: 20px; font-weight: 700; color: var(--mute); white-space: nowrap; }
+.brand-row { width: 100%; }
+.brand-ico { font-size: 18px; }
 .brand.active { color: var(--text); }
 .brand-strum { color: #d97706; opacity: .55; }
 .brand-strum.active { opacity: 1; }
