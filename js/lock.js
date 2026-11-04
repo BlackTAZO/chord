@@ -8,7 +8,7 @@
 
   function setLocked(locked) {
     document.body.classList.toggle('locked', locked);
-    $('lockBtn').textContent = locked ? '🔒 편집 잠금해제' : '🔓 잠그기';
+    $('lockBtn').textContent = locked ? '🔒 잠금해제' : '🔓 잠그기';
     $('songTitle').readOnly = locked;
     try { locked ? sessionStorage.removeItem(SK) : sessionStorage.setItem(SK, '1'); } catch (e) { /* 무시 */ }
   }

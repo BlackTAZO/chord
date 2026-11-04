@@ -9,11 +9,11 @@ button { font-family: inherit; cursor: pointer; }
 .muted { color: var(--mute); font-weight: 400; font-size: 12px; margin-left: 6px; }
 
 .app-header { background: #fff; border-bottom: 1px solid var(--line); box-shadow: 0 1px 2px rgba(0,0,0,.04); }
-.header-inner { display: flex; justify-content: space-between; align-items: center; padding-top: 14px; padding-bottom: 14px; gap: 8px; }
+.header-inner { display: flex; flex-direction: column; align-items: stretch; padding-top: 10px; padding-bottom: 10px; gap: 8px; }
 .app-header h1 { margin: 0; font-size: 20px; }
 .app-header p { margin: 2px 0 0; font-size: 13px; color: var(--sub); }
-.header-actions { display: flex; gap: 8px; }
-.pill-btn { padding: 6px 12px; border: 1px solid #d1d5db; background: #fff; border-radius: 8px; font-size: 13px; color: var(--sub); white-space: nowrap; }
+.header-actions { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.pill-btn { padding: 7px 4px; text-align: center; overflow: hidden; text-overflow: ellipsis; border: 1px solid #d1d5db; background: #fff; border-radius: 8px; font-size: 13px; color: var(--sub); white-space: nowrap; }
 .pill-btn:hover { background: #f3f4f6; }
 .pill-btn.active { background: var(--blue-l); color: var(--blue-d); border-color: #93c5fd; }
 
@@ -165,7 +165,6 @@ input[type=text]:focus, select:focus { outline: 2px solid #93c5fd; border-color:
 .v-nav:disabled { opacity: .4; cursor: default; }
 
 /* 프로젝트 / 프리셋 / 가져오기 */
-.header-actions { flex-wrap: wrap; justify-content: flex-end; }
 .title-row { display: flex; gap: 8px; margin-bottom: 12px; }
 .title-row input { flex: 1; min-width: 0; font-size: 16px; font-weight: 600; }
 .hint { font-size: 13px; color: var(--sub); line-height: 1.5; margin: 0 0 12px; }
@@ -191,3 +190,27 @@ body.locked .admin-only, body.locked .chip-x { display: none !important; }
 body.locked .chip { padding-right: 12px; cursor: pointer; }
 input[type=password] { font: inherit; font-size: 14px; border: 1px solid #d1d5db; border-radius: 8px; padding: 6px 8px; flex: 1; min-width: 0; }
 .title-row input[readonly] { background: transparent; border-color: transparent; padding-left: 0; }
+
+/* 컴팩트 선택기 / 악기 선택 */
+.picker { padding: 10px; }
+.picker-top { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
+.picker-top .mini-toggle { margin: 0; padding: 4px 10px; font-size: 12px; }
+.picker .check { font-size: 13px; }
+.picker .btn-grid { gap: 4px; margin-bottom: 8px; flex: none; }
+.picker .btn-grid.roots { display: grid; grid-template-columns: repeat(12, 1fr); }
+.picker .btn-grid.quals { display: grid; grid-template-columns: repeat(auto-fill, minmax(52px, 1fr)); }
+.picker .btn-grid button { min-width: 0; padding: 5px 2px; font-size: 13px; }
+.picker .btn-grid.roots button { min-width: 0; }
+.picker .preview-bar { padding: 6px 12px; flex-wrap: nowrap; }
+.picker .preview-name { font-size: 22px; }
+.picker .direct-row { margin-top: 8px; }
+.inst-select { position: relative; display: inline-block; }
+.inst-btn { padding: 7px 14px; font-size: 14px; border: 1px solid #93c5fd; background: var(--blue-l); color: var(--blue-d); border-radius: 8px; font-weight: 600; }
+.inst-menu { position: absolute; left: 0; top: calc(100% + 4px); z-index: 50; flex-direction: column; flex-wrap: nowrap; background: #fff; border: 1px solid var(--line); border-radius: 10px; padding: 6px; box-shadow: 0 6px 18px rgba(0,0,0,.15); min-width: 200px; }
+.inst-menu[hidden] { display: none; }
+.inst-menu button { text-align: left; border: none; }
+@media (max-width: 560px) {
+  .picker .btn-grid.roots { grid-template-columns: repeat(6, 1fr); }
+  .picker .btn-grid.quals { grid-template-columns: repeat(5, 1fr); }
+  .pill-btn { font-size: 12px; }
+}

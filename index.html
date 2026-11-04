@@ -9,10 +9,7 @@
 <body class="locked">
   <header class="app-header">
     <div class="wrap header-inner">
-      <div>
-        <h1>Chord Viewer</h1>
-        <p>코드 선택 · 표기 · 소리 확인</p>
-      </div>
+      <h1>Chord Viewer</h1>
       <div class="header-actions">
         <button id="projectBtn" class="pill-btn admin-only">📁 프로젝트</button>
         <button id="presetBtn" class="pill-btn admin-only">🎼 진행 프리셋</button>
@@ -27,37 +24,19 @@
   <main class="wrap">
     <!-- ① 코드 선택기 (제일 위) -->
     <section class="panel picker admin-only" id="picker">
-      <div class="panel-title">🎛 코드 선택 <span class="muted">근음 → 종류 → (베이스) 순서로 고른 뒤 추가하세요</span></div>
-
-      <div class="picker-row">
-        <div class="picker-label">
-          근음
-          <button id="accToggle" class="mini-toggle" title="샤프/플랫 표기 전환">♭ 표기</button>
-        </div>
-        <div id="rootGrid" class="btn-grid roots"></div>
-      </div>
-
-      <div class="picker-row">
-        <div class="picker-label">종류</div>
-        <div id="qualityGrid" class="btn-grid quals"></div>
-      </div>
-
-      <div class="picker-row options">
+      <div class="picker-top">
+        <button id="accToggle" class="mini-toggle" title="샤프/플랫 표기 전환">♭ 표기</button>
         <label class="check"><input type="checkbox" id="add9Check"> add9 추가</label>
-        <label class="bass-select">베이스(슬래시)
-          <select id="bassSelect"></select>
-        </label>
       </div>
+      <div id="rootGrid" class="btn-grid roots"></div>
+      <div id="qualityGrid" class="btn-grid quals"></div>
 
       <div class="preview-bar">
         <div class="preview-info">
           <div id="previewName" class="preview-name">C</div>
           <div id="previewNotes" class="preview-notes"></div>
         </div>
-        <div class="preview-actions">
-          <button id="previewPlay" class="btn btn-ghost">▶ 미리듣기</button>
-          <button id="addBtn" class="btn btn-primary">＋ 추가</button>
-        </div>
+        <button id="addBtn" class="btn btn-primary">＋ 추가</button>
       </div>
 
       <div class="direct-row">
@@ -94,13 +73,16 @@
 
     <!-- ③ 표기 방법 -->
     <section class="panel notation-bar" id="notationBar">
-      <div class="tabs" id="typeTabs">
-        <button data-type="staff">🎼 오선보</button>
-        <button data-type="guitar-tab">🎸 기타 타브</button>
-        <button data-type="guitar-diagram">🎸 기타 다이어그램</button>
-        <button data-type="ukulele-tab">🪕 우쿨렐레 타브</button>
-        <button data-type="ukulele-diagram">🪕 우쿨렐레 다이어그램</button>
-        <button data-type="piano">🎹 피아노</button>
+      <div class="inst-select">
+        <button id="typeBtn" class="inst-btn" aria-haspopup="true">악기 선택 ▾</button>
+        <div class="tabs inst-menu" id="typeTabs" hidden>
+          <button data-type="staff">🎼 오선보</button>
+          <button data-type="guitar-tab">🎸 기타 타브</button>
+          <button data-type="guitar-diagram">🎸 기타 다이어그램</button>
+          <button data-type="ukulele-tab">🪕 우쿨렐레 타브</button>
+          <button data-type="ukulele-diagram">🪕 우쿨렐레 다이어그램</button>
+          <button data-type="piano">🎹 피아노</button>
+        </div>
       </div>
       <div id="capoRow" class="capo-row">
         <span class="capo-label">카포</span>

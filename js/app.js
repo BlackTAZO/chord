@@ -150,9 +150,6 @@
       `<button data-root="${pc}" class="${BLACK.includes(pc) ? 'black ' : ''}${p.root === pc ? 'active' : ''}">${spell(pc)}</button>`).join('');
     $('qualityGrid').innerHTML = QUALS.map(([q, label]) =>
       `<button data-q="${esc(q)}" class="${p.q === q ? 'active' : ''}">${esc(label)}</button>`).join('');
-    const sel = $('bassSelect');
-    sel.innerHTML = '<option value="">없음</option>' + Array.from({ length: 12 }, (_, pc) => `<option value="${pc}">${spell(pc)}</option>`).join('');
-    sel.value = p.bass;
     $('accToggle').textContent = p.flat ? '♭ 표기' : '♯ 표기';
     updatePreview();
   }
@@ -263,7 +260,11 @@
     } else banner.style.display = 'none';
   }
   function renderTabs() {
-    document.querySelectorAll('#typeTabs button').forEach((b) => b.classList.toggle('active', b.dataset.type === state.type));
+    document.querySelectorAll('#typeTabs button').forEach((b) => {
+      const on = b.dataset.type === state.type;
+      b.classList.toggle('active', on);
+      if (on) $('typeBtn').textContent = b.textContent + ' ▾';
+    });
     $('capoRow').classList.toggle('show', isFretted(state.type));
     $('capoButtons').innerHTML = Array.from({ length: 13 }, (_, n) =>
       `<button data-capo="${n}" class="${state.capo === n ? 'active' : ''}">${n ? n : '없음'}</button>`).join('');
@@ -335,14 +336,7 @@
       state.picker.q = b.dataset.q; renderPicker();
     });
     $('add9Check').addEventListener('change', (e) => { state.picker.add9 = e.target.checked; updatePreview(); });
-    $('bassSelect').addEventListener('change', (e) => { state.picker.bass = e.target.value; updatePreview(); });
     $('accToggle').addEventListener('click', () => { state.picker.flat = !state.picker.flat; renderPicker(); });
-    $('previewPlay').addEventListener('click', () => {
-      const ch = T.parseChord(pickerName()); if (!ch) return;
-      const m = T.pianoMidis(ch);
-      if (ch.bassPc == null) m.unshift(48 + ch.rootPc);
-      A.playChord(m, 'piano', 'strum');
-    });
     $('addBtn').addEventListener('click', () => {
       const ch = T.parseChord(pickerName()); if (!ch) { toast('코드를 인식할 수 없습니다'); return; }
       if (addChord(ch.name)) { afterChange(ch.name); toast(`${ch.name} 추가됨`); }
@@ -394,8 +388,11 @@
     $('typeTabs').addEventListener('click', (e) => {
       const b = e.target.closest('[data-type]'); if (!b) return;
       state.type = b.dataset.type;
+      $('typeTabs').hidden = true;
       renderTabs(); renderCards(); syncUrl();
     });
+    $('typeBtn').addEventListener('click', (e) => { e.stopPropagation(); $('typeTabs').hidden = !$('typeTabs').hidden; });
+    document.addEventListener('click', (e) => { if (!e.target.closest('.inst-select')) $('typeTabs').hidden = true; });
     $('capoButtons').addEventListener('click', (e) => {
       const b = e.target.closest('[data-capo]'); if (!b) return;
       state.capo = +b.dataset.capo;
