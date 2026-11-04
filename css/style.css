@@ -185,3 +185,9 @@ input[type=text]:focus, select:focus { outline: 2px solid #93c5fd; border-color:
 textarea.paste { width: 100%; font: inherit; font-size: 14px; border: 1px solid #d1d5db; border-radius: 8px; padding: 8px; resize: vertical; margin-bottom: 8px; }
 .status { font-size: 13px; color: var(--blue-d); }
 .status.err { color: var(--red); }
+
+/* 편집 잠금 */
+body.locked .admin-only, body.locked .chip-x { display: none !important; }
+body.locked .chip { padding-right: 12px; cursor: pointer; }
+input[type=password] { font: inherit; font-size: 14px; border: 1px solid #d1d5db; border-radius: 8px; padding: 6px 8px; flex: 1; min-width: 0; }
+.title-row input[readonly] { background: transparent; border-color: transparent; padding-left: 0; }

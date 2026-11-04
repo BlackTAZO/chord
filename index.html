@@ -6,7 +6,7 @@
   <title>코드 뷰어 - Chord Viewer</title>
   <link rel="stylesheet" href="css/style.css">
 </head>
-<body>
+<body class="locked">
   <header class="app-header">
     <div class="wrap header-inner">
       <div>
@@ -14,9 +14,10 @@
         <p>코드 선택 · 표기 · 소리 확인</p>
       </div>
       <div class="header-actions">
-        <button id="projectBtn" class="pill-btn">📁 프로젝트</button>
-        <button id="presetBtn" class="pill-btn">🎼 진행 프리셋</button>
-        <button id="importBtn" class="pill-btn">📤 악보 가져오기</button>
+        <button id="projectBtn" class="pill-btn admin-only">📁 프로젝트</button>
+        <button id="presetBtn" class="pill-btn admin-only">🎼 진행 프리셋</button>
+        <button id="importBtn" class="pill-btn admin-only">📤 악보 가져오기</button>
+        <button id="lockBtn" class="pill-btn">🔒 편집 잠금해제</button>
         <button id="horizontalToggle" class="pill-btn" title="가로 모드">▭ 가로</button>
         <button id="shareBtn" class="pill-btn" title="현재 코드 목록 링크 복사">🔗 링크 복사</button>
       </div>
@@ -25,7 +26,7 @@
 
   <main class="wrap">
     <!-- ① 코드 선택기 (제일 위) -->
-    <section class="panel picker" id="picker">
+    <section class="panel picker admin-only" id="picker">
       <div class="panel-title">🎛 코드 선택 <span class="muted">근음 → 종류 → (베이스) 순서로 고른 뒤 추가하세요</span></div>
 
       <div class="picker-row">
@@ -69,17 +70,17 @@
     <section class="panel">
       <div class="title-row">
         <input id="songTitle" type="text" placeholder="곡 제목 (프로젝트 이름)" autocomplete="off">
-        <button id="quickSave" class="btn btn-ghost" title="프로젝트로 저장">💾 저장</button>
+        <button id="quickSave" class="btn btn-ghost admin-only" title="프로젝트로 저장">💾 저장</button>
       </div>
       <div class="chips-row">
         <span class="row-label">코드:</span>
         <div id="chordChips" class="chips"></div>
-        <button id="resetOrderBtn" class="tiny-btn" style="display:none">↺ 초기화</button>
-        <button id="clearAllBtn" class="tiny-btn" style="display:none">모두 삭제</button>
+        <button id="resetOrderBtn" class="tiny-btn admin-only" style="display:none">↺ 초기화</button>
+        <button id="clearAllBtn" class="tiny-btn admin-only" style="display:none">모두 삭제</button>
         <button id="playAllBtn" class="btn btn-play" style="display:none">▶ 전체 재생</button>
       </div>
 
-      <div id="customRow" class="custom" style="display:none">
+      <div id="customRow" class="custom admin-only" style="display:none">
         <div class="custom-head">
           <span>🎵 나만의 진행 <span class="muted">(위 코드를 클릭하면 추가됩니다)</span></span>
           <span class="custom-actions">
@@ -176,6 +177,16 @@
     </div>
   </div>
 
+  <!-- 편집 잠금 해제 -->
+  <div id="lockModal" class="modal-overlay" hidden>
+    <div class="modal" style="max-width:360px">
+      <div class="modal-head"><h3>🔒 편집 잠금해제</h3><button class="modal-close" data-close>&times;</button></div>
+      <p class="hint">비밀번호를 입력하면 코드 추가, 악보 가져오기, 프리셋, 프로젝트 저장 도구가 열립니다.</p>
+      <div class="direct-row"><input id="lockInput" type="password" placeholder="비밀번호" autocomplete="current-password"><button id="lockSubmit" class="btn btn-primary">확인</button></div>
+      <div id="lockMsg" class="status err" style="margin-top:8px"></div>
+    </div>
+  </div>
+
   <script src="https://cdn.jsdelivr.net/npm/vexflow@3.0.9/releases/vexflow-min.js"></script>
   <script src="js/theory.js"></script>
   <script src="js/audio.js"></script>
@@ -184,5 +195,7 @@
   <script src="js/presets.js"></script>
   <script src="js/app.js"></script>
   <script src="js/extras.js"></script>
+  <script src="js/lock-config.js"></script>
+  <script src="js/lock.js"></script>
 </body>
 </html>
