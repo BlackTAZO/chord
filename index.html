@@ -9,7 +9,10 @@
 <body class="locked">
   <header class="app-header">
     <div class="wrap header-inner">
-      <h1>Chord Viewer</h1>
+      <div class="brand-row">
+        <h1><button id="navViewer" class="brand active" type="button">Chord Viewer</button></h1>
+        <button id="navStrum" class="brand brand-strum" type="button">Strum</button>
+      </div>
       <div class="header-actions">
         <button id="projectBtn" class="pill-btn admin-only">📁 프로젝트</button>
         <button id="presetBtn" class="pill-btn admin-only">🎼 진행 프리셋</button>
@@ -21,7 +24,7 @@
     </div>
   </header>
 
-  <main class="wrap">
+  <main class="wrap" id="viewerMain">
     <!-- ① 코드 선택기 (제일 위) -->
     <section class="panel picker admin-only" id="picker">
       <div class="picker-top">
@@ -113,6 +116,73 @@
     </div>
   </main>
 
+  <main class="wrap" id="strumMain" hidden>
+    <section class="panel">
+      <div class="panel-title">🎧 곡 → 코드 진행 분석 <span class="muted">음원 파일을 올리면 브라우저에서 코드를 분석합니다 (파일은 업로드되지 않아요)</span></div>
+      <label id="strumDrop" class="drop-zone">
+        <input type="file" id="strumFile" accept="audio/*,.mp3,.wav,.m4a" hidden>
+        <span id="strumDropText">MP3 · WAV · M4A 파일을 끌어다 놓거나 클릭해서 선택</span>
+      </label>
+      <div id="strumStatus" class="status"></div>
+      <div id="strumProgress" class="progress" hidden><div id="strumBar"></div></div>
+    </section>
+
+    <section class="panel" id="linkPanel">
+      <div class="panel-title">🔗 YouTube · Spotify 링크로 연습 <span class="muted">링크 곡은 자동 분석이 안 돼서, 들으면서 코드를 직접 입력합니다</span></div>
+      <div class="direct-row" style="margin-top:0">
+        <input id="linkInput" type="text" placeholder="YouTube 또는 Spotify 링크 붙여넣기" autocomplete="off" spellcheck="false">
+        <button id="linkGo" class="btn btn-ghost">열기</button>
+      </div>
+      <div id="linkStatus" class="status err"></div>
+      <div id="linkEmbed" class="link-embed" hidden></div>
+      <div id="manualBox" hidden>
+        <textarea id="manualChords" class="paste" rows="2" placeholder="코드 진행 입력 (공백·쉼표·줄바꿈 구분) 예: C G Am F"></textarea>
+        <div class="strum-inst link-inst">
+          <button data-linst="guitar" class="active">🎸 기타</button>
+          <button data-linst="ukulele">🪕 우쿨렐레</button>
+          <button id="manualToViewer" class="btn btn-ghost" style="padding:5px 12px">Chord Viewer로 보내기</button>
+        </div>
+        <div id="manualGrid" class="manual-grid"></div>
+      </div>
+    </section>
+
+    <section class="panel" id="strumPlayer" hidden>
+      <div class="strum-now">
+        <div class="now-main"><div class="now-label">현재</div><div id="nowChord" class="now-chord">–</div></div>
+        <div id="nowDiagram" class="now-diagram"></div>
+        <div class="now-main"><div class="now-label">다음</div><div id="nextChord" class="now-next">–</div></div>
+      </div>
+      <div class="strum-inst">
+        <button data-sinst="guitar" class="active">🎸 기타</button>
+        <button data-sinst="ukulele">🪕 우쿨렐레</button>
+      </div>
+      <audio id="strumAudio" preload="auto"></audio>
+      <input id="strumSeek" type="range" min="0" max="1000" value="0" class="seek">
+      <div class="strum-time"><span id="strumCur">0:00</span><span id="strumDur">0:00</span></div>
+      <div class="strum-ctrl">
+        <button id="strumPlay" class="btn btn-primary">▶ 재생</button>
+        <label class="bass-select">속도
+          <select id="strumSpeed">
+            <option value="0.5">0.5x</option><option value="0.75">0.75x</option>
+            <option value="0.9">0.9x</option><option value="1" selected>1x</option>
+          </select>
+        </label>
+      </div>
+      <div class="strum-ctrl loop">
+        <button id="loopA" class="btn btn-ghost">A 지점</button>
+        <button id="loopB" class="btn btn-ghost">B 지점</button>
+        <button id="loopToggle" class="btn btn-ghost">🔁 구간 반복</button>
+        <button id="loopClear" class="tiny-btn">초기화</button>
+        <span id="loopInfo" class="muted"></span>
+      </div>
+    </section>
+
+    <section class="panel" id="strumChartPanel" hidden>
+      <div class="panel-title">코드 차트 <span class="muted">코드를 누르면 그 위치로 이동합니다</span></div>
+      <div id="strumChart" class="strum-chart"></div>
+    </section>
+  </main>
+
   <button id="fabTop" class="fab" title="위로 올라가기">↑</button>
   <div id="toast" class="toast"></div>
 
@@ -192,6 +262,7 @@
   <script src="js/presets.js"></script>
   <script src="js/app.js"></script>
   <script src="js/extras.js"></script>
+  <script src="js/strum.js"></script>
   <script src="js/lock-config.js"></script>
   <script src="js/lock.js"></script>
 </body>

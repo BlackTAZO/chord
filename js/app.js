@@ -105,7 +105,7 @@
     p.set('type', state.type);
     if (state.title) p.set('title', state.title);
     if (state.capo) p.set('capo', state.capo);
-    try { history.replaceState(null, '', location.pathname + '?' + p.toString()); } catch (e) { /* file:// 등 */ }
+    try { history.replaceState(null, '', location.pathname + '?' + p.toString() + location.hash); } catch (e) { /* file:// 등 */ }
   }
 
   /* ---------- 코드 추가/삭제 ---------- */
