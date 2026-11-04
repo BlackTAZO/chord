@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>코드 뷰어 - Chord Viewer</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header class="app-header">
+    <div class="wrap header-inner">
+      <div>
+        <h1>Chord Viewer</h1>
+        <p>코드 선택 · 표기 · 소리 확인</p>
+      </div>
+      <div class="header-actions">
+        <button id="projectBtn" class="pill-btn">📁 프로젝트</button>
+        <button id="presetBtn" class="pill-btn">🎼 진행 프리셋</button>
+        <button id="importBtn" class="pill-btn">📤 악보 가져오기</button>
+        <button id="horizontalToggle" class="pill-btn" title="가로 모드">▭ 가로</button>
+        <button id="shareBtn" class="pill-btn" title="현재 코드 목록 링크 복사">🔗 링크 복사</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <!-- ① 코드 선택기 (제일 위) -->
+    <section class="panel picker" id="picker">
+      <div class="panel-title">🎛 코드 선택 <span class="muted">근음 → 종류 → (베이스) 순서로 고른 뒤 추가하세요</span></div>
+
+      <div class="picker-row">
+        <div class="picker-label">
+          근음
+          <button id="accToggle" class="mini-toggle" title="샤프/플랫 표기 전환">♭ 표기</button>
+        </div>
+        <div id="rootGrid" class="btn-grid roots"></div>
+      </div>
+
+      <div class="picker-row">
+        <div class="picker-label">종류</div>
+        <div id="qualityGrid" class="btn-grid quals"></div>
+      </div>
+
+      <div class="picker-row options">
+        <label class="check"><input type="checkbox" id="add9Check"> add9 추가</label>
+        <label class="bass-select">베이스(슬래시)
+          <select id="bassSelect"></select>
+        </label>
+      </div>
+
+      <div class="preview-bar">
+        <div class="preview-info">
+          <div id="previewName" class="preview-name">C</div>
+          <div id="previewNotes" class="preview-notes"></div>
+        </div>
+        <div class="preview-actions">
+          <button id="previewPlay" class="btn btn-ghost">▶ 미리듣기</button>
+          <button id="addBtn" class="btn btn-primary">＋ 추가</button>
+        </div>
+      </div>
+
+      <div class="direct-row">
+        <input id="directInput" type="text" placeholder="직접 입력: Am7, Gsus4, Ab(add9)/C, 여러 개는 쉼표로" autocomplete="off" spellcheck="false">
+        <button id="directAdd" class="btn btn-ghost">입력 추가</button>
+      </div>
+    </section>
+
+    <!-- ② 선택한 코드 목록 -->
+    <section class="panel">
+      <div class="title-row">
+        <input id="songTitle" type="text" placeholder="곡 제목 (프로젝트 이름)" autocomplete="off">
+        <button id="quickSave" class="btn btn-ghost" title="프로젝트로 저장">💾 저장</button>
+      </div>
+      <div class="chips-row">
+        <span class="row-label">코드:</span>
+        <div id="chordChips" class="chips"></div>
+        <button id="resetOrderBtn" class="tiny-btn" style="display:none">↺ 초기화</button>
+        <button id="clearAllBtn" class="tiny-btn" style="display:none">모두 삭제</button>
+        <button id="playAllBtn" class="btn btn-play" style="display:none">▶ 전체 재생</button>
+      </div>
+
+      <div id="customRow" class="custom" style="display:none">
+        <div class="custom-head">
+          <span>🎵 나만의 진행 <span class="muted">(위 코드를 클릭하면 추가됩니다)</span></span>
+          <span class="custom-actions">
+            <button id="customPlay" class="btn btn-amber" style="display:none">▶ 재생</button>
+            <button id="customClear" class="tiny-btn" style="display:none">초기화</button>
+          </span>
+        </div>
+        <div id="customZone" class="custom-zone"><span class="drop-hint">코드를 클릭하거나 끌어다 놓아 추가하세요</span></div>
+      </div>
+    </section>
+
+    <!-- ③ 표기 방법 -->
+    <section class="panel notation-bar" id="notationBar">
+      <div class="tabs" id="typeTabs">
+        <button data-type="staff">🎼 오선보</button>
+        <button data-type="guitar-tab">🎸 기타 타브</button>
+        <button data-type="guitar-diagram">🎸 기타 다이어그램</button>
+        <button data-type="ukulele-tab">🪕 우쿨렐레 타브</button>
+        <button data-type="ukulele-diagram">🪕 우쿨렐레 다이어그램</button>
+        <button data-type="piano">🎹 피아노</button>
+      </div>
+      <div id="capoRow" class="capo-row">
+        <span class="capo-label">카포</span>
+        <div id="capoButtons" class="capo-buttons"></div>
+      </div>
+    </section>
+
+    <div id="capoBanner" class="capo-banner"></div>
+    <div id="cards" class="cards"></div>
+    <div id="emptyState" class="empty">
+      <p class="empty-big">표시할 코드가 없습니다</p>
+      <p>위의 <b>코드 선택</b>에서 코드를 골라 추가하거나, URL에 <code>?chords=Am,C,G</code> 형태로 전달해 주세요</p>
+    </div>
+  </main>
+
+  <button id="fabTop" class="fab" title="위로 올라가기">↑</button>
+  <div id="toast" class="toast"></div>
+
+  <!-- 운지법 선택 모달 -->
+  <div id="voicingModal" class="modal-overlay" hidden>
+    <div class="modal">
+      <div class="modal-head"><h3 id="voicingTitle">운지법</h3><button id="voicingClose" class="modal-close">&times;</button></div>
+      <div id="voicingGrid" class="voicing-grid"></div>
+    </div>
+  </div>
+
+
+  <!-- 프로젝트 -->
+  <div id="projectModal" class="modal-overlay" hidden>
+    <div class="modal">
+      <div class="modal-head"><h3>📁 프로젝트 (곡)</h3><button class="modal-close" data-close>&times;</button></div>
+      <p class="hint">곡 제목, 코드 목록, 나만의 진행, 표기·카포 설정이 이 브라우저에 저장됩니다.</p>
+      <div class="direct-row"><input id="projName" type="text" placeholder="프로젝트 이름"><button id="projSave" class="btn btn-primary">현재 상태 저장</button></div>
+      <div id="projList" class="proj-list"></div>
+      <div class="modal-foot">
+        <button id="projExport" class="btn btn-ghost">전체 내보내기 (JSON)</button>
+        <label class="btn btn-ghost">JSON 가져오기<input type="file" id="projImportFile" accept=".json,application/json" hidden></label>
+      </div>
+    </div>
+  </div>
+
+  <!-- 프리셋 -->
+  <div id="presetModal" class="modal-overlay" hidden>
+    <div class="modal">
+      <div class="modal-head"><h3>🎼 곡 코드 진행 프리셋</h3><button class="modal-close" data-close>&times;</button></div>
+      <div class="direct-row" style="align-items:center">
+        <label class="bass-select">키 <select id="presetKey"></select></label>
+        <label class="check"><input type="checkbox" id="presetAppend"> 기존 코드에 이어 붙이기</label>
+      </div>
+      <div id="presetList" class="proj-list"></div>
+    </div>
+  </div>
+
+  <!-- 악보 가져오기 -->
+  <div id="importModal" class="modal-overlay" hidden>
+    <div class="modal">
+      <div class="modal-head"><h3>📤 악보 가져오기 → 다른 악기로 변환</h3><button class="modal-close" data-close>&times;</button></div>
+      <p class="hint">코드가 적힌 악보에서 코드 진행을 읽어 와서, 기타·우쿨렐레·피아노·오선보 등 모든 표기로 바꿔 보여줍니다.<br>
+        지원: <b>이미지(JPG/PNG)·PDF</b>(코드 기호를 문자 인식), <b>텍스트/ChordPro</b>, <b>기타 타브(ASCII)</b>, <b>MusicXML</b></p>
+      <label id="dropZone" class="drop-zone">
+        <input type="file" id="importFile" accept="image/*,.pdf,.txt,.cho,.crd,.pro,.chordpro,.xml,.musicxml,.mxl,.mid,.midi" hidden>
+        <span>파일을 끌어다 놓거나 클릭해서 선택</span>
+      </label>
+      <textarea id="importText" class="paste" rows="4" placeholder="또는 코드표/기타 타브 텍스트를 여기에 붙여넣기"></textarea>
+      <div class="direct-row"><button id="importAnalyze" class="btn btn-ghost">붙여넣은 텍스트 분석</button><span id="importStatus" class="status"></span></div>
+      <div id="importResult" style="display:none">
+        <div class="panel-title" style="margin-top:12px">인식된 코드 진행 <span class="muted">잘못 읽힌 코드는 직접 고칠 수 있어요 (공백/쉼표로 구분)</span></div>
+        <textarea id="importChords" class="paste" rows="3"></textarea>
+        <div class="direct-row" style="align-items:center">
+          <label class="check"><input type="checkbox" id="importAppend"> 기존 코드에 이어 붙이기</label>
+          <button id="importApply" class="btn btn-primary" style="margin-left:auto">이 코드로 열기</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/vexflow@3.0.9/releases/vexflow-min.js"></script>
+  <script src="js/theory.js"></script>
+  <script src="js/audio.js"></script>
+  <script src="js/render.js"></script>
+  <script src="js/importer.js"></script>
+  <script src="js/presets.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/extras.js"></script>
+</body>
+</html>
