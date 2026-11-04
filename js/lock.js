@@ -20,13 +20,35 @@
     return hex(bits) === L.hash;
   }
 
+  /* 실패 횟수 제한: 10회 틀리면 10분간 입력 차단 (이 브라우저 기준) */
+  const FK = 'chordviewer.lockfail', MAX_FAIL = 10, BLOCK_MS = 10 * 60 * 1000;
+  let mem = { count: 0, until: 0 };
+  const getFail = () => { try { return JSON.parse(localStorage.getItem(FK)) || mem; } catch (e) { return mem; } };
+  const setFail = (v) => { mem = v; try { localStorage.setItem(FK, JSON.stringify(v)); } catch (e) { /* 메모리로만 유지 */ } };
+  const remainMs = () => Math.max(0, getFail().until - Date.now());
+  const remainText = () => `시도 횟수를 초과했습니다. 약 ${Math.ceil(remainMs() / 60000)}분 뒤에 다시 시도하세요.`;
+  let tick = null;
+  function refreshBlock() {
+    const blocked = remainMs() > 0;
+    $('lockInput').disabled = blocked; $('lockSubmit').disabled = blocked;
+    if (blocked) { msg.textContent = remainText(); if (!tick) tick = setInterval(refreshBlock, 15000); }
+    else if (tick) { clearInterval(tick); tick = null; if (msg.textContent.startsWith('시도 횟수')) msg.textContent = ''; }
+  }
+
   const modal = $('lockModal'), input = $('lockInput'), msg = $('lockMsg');
-  function openModal() { msg.textContent = ''; input.value = ''; modal.hidden = false; input.focus(); }
+  function openModal() { msg.textContent = ''; input.value = ''; modal.hidden = false; refreshBlock(); if (!input.disabled) input.focus(); }
   async function submit() {
+    if (remainMs() > 0) { refreshBlock(); return; }
     msg.textContent = '확인 중…';
     try {
-      if (await check(input.value)) { setLocked(false); modal.hidden = true; window.AppAPI.toast('편집 도구가 열렸습니다'); }
-      else msg.textContent = '비밀번호가 맞지 않습니다';
+      if (await check(input.value)) {
+        setFail({ count: 0, until: 0 });
+        setLocked(false); modal.hidden = true; window.AppAPI.toast('편집 도구가 열렸습니다');
+      } else {
+        const count = (getFail().count || 0) + 1;
+        if (count >= MAX_FAIL) { setFail({ count: 0, until: Date.now() + BLOCK_MS }); input.value = ''; refreshBlock(); }
+        else { setFail({ count, until: 0 }); msg.textContent = `비밀번호가 맞지 않습니다 (${MAX_FAIL - count}회 남음)`; }
+      }
     } catch (e) { msg.textContent = e.message; }
   }
   $('lockBtn').addEventListener('click', () => (document.body.classList.contains('locked') ? openModal() : setLocked(true)));
