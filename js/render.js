@@ -132,5 +132,35 @@
     }
   }
 
-  root.Render = { diagram, tab, piano, staff };
+  /* ---------- 스케일 포지션 (5프렛 창) ---------- */
+  function scaleBoard(inst, chord, pcs, s) {
+    const tun = T.TUNINGS[inst], n = tun.length;
+    const sw = n === 6 ? 24 : 34, fh = 30, left = 40, right = 30, top = 46, rows = 5;
+    const W = left + sw * (n - 1) + right, H = top + rows * fh + 10;
+    const start = Math.max(s, 1);
+    const X = (i) => left + i * sw;
+    const Y = (f) => top + (f - start + 0.5) * fh;
+    const cps = new Set(chord.pcs);
+    let o = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" font-family="sans-serif">`;
+    for (let r = 0; r <= rows; r++) o += `<line x1="${X(0)}" y1="${top + r * fh}" x2="${X(n - 1)}" y2="${top + r * fh}" stroke="${INK}" stroke-width="${r === 0 && start === 1 ? 5 : 1.3}"/>`;
+    for (let i = 0; i < n; i++) o += `<line x1="${X(i)}" y1="${top}" x2="${X(i)}" y2="${top + rows * fh}" stroke="${INK}" stroke-width="1.3"/>`;
+    if (start > 1) o += `<text x="${X(0) - 16}" y="${top + fh * 0.5 + 4}" text-anchor="end" font-size="12" fill="${INK}" font-weight="600">${start}fr</text>`;
+    const dot = (cx, cy, pc) => {
+      const isRoot = pc === chord.rootPc, isChord = cps.has(pc);
+      const fill = isRoot ? ROOT : isChord ? BLUE : '#dbeafe';
+      const txt = isRoot || isChord ? '#fff' : '#1e40af';
+      return `<circle cx="${cx}" cy="${cy}" r="10" fill="${fill}" stroke="${isRoot || isChord ? 'none' : '#93c5fd'}"/>` +
+        `<text x="${cx}" y="${cy + 3.5}" text-anchor="middle" font-size="9.5" font-weight="700" fill="${txt}">${T.noteName(pc, chord)}</text>`;
+    };
+    for (let i = 0; i < n; i++) {
+      for (let f = s; f <= start + rows - 1; f++) {
+        const pc = (tun[i] + f) % 12;
+        if (!pcs.includes(pc)) continue;
+        if (f === 0) o += dot(X(i), top - 16, pc); else o += dot(X(i), Y(f), pc);
+      }
+    }
+    return o + '</svg>';
+  }
+
+  root.Render = { diagram, tab, piano, staff, scaleBoard };
 })(this);

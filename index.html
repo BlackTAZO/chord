@@ -73,6 +73,7 @@
 
     <!-- ③ 표기 방법 -->
     <section class="panel notation-bar" id="notationBar">
+      <div class="inst-row">
       <div class="inst-select">
         <button id="typeBtn" class="inst-btn" aria-haspopup="true">악기 선택 ▾</button>
         <div class="tabs inst-menu" id="typeTabs" hidden>
@@ -82,6 +83,20 @@
           <button data-type="ukulele-tab">🪕 우쿨렐레 타브</button>
           <button data-type="ukulele-diagram">🪕 우쿨렐레 다이어그램</button>
           <button data-type="piano">🎹 피아노</button>
+        </div>
+      </div>
+      <div class="zoom-ctl" title="코드 크기">
+        <button id="zoomOut" aria-label="작게">−</button>
+        <span id="zoomVal">100%</span>
+        <button id="zoomIn" aria-label="크게">+</button>
+      </div>
+      </div>
+      <div id="scaleRow" class="capo-row">
+        <span class="capo-label">스케일</span>
+        <div id="scaleButtons" class="capo-buttons">
+          <button data-scale="">없음</button>
+          <button data-scale="full">7음 스케일</button>
+          <button data-scale="penta">펜타토닉</button>
         </div>
       </div>
       <div id="capoRow" class="capo-row">

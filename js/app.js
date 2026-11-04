@@ -16,7 +16,7 @@
 
   const state = {
     chords: [], orig: [], custom: [], title: '', projectId: null,
-    type: 'guitar-diagram', capo: 0, horizontal: false,
+    type: 'guitar-diagram', capo: 0, horizontal: false, zoom: 1, scale: '', sp: {},
     vi: {},
     picker: { root: 0, flat: true, q: '', add9: false, bass: '' },
   };
@@ -206,6 +206,42 @@
     h += T.chordNoteNames(ch).map((n) => `<span class="note-badge ${n === rootN ? 'root' : ''}">${n}</span>`).join('');
     return h;
   }
+  const ZOOMS = [0.4, 0.5, 0.6, 0.75, 0.9, 1, 1.25, 1.5];
+  const COMPACT_MAX = 0.6;
+  function scaleInfo(ch, kind) {
+    const ivs = new Set(ch.items.map((i) => i.iv % 12));
+    const minor = ivs.has(3) && !ivs.has(4), dim = minor && ivs.has(6);
+    const dom = ivs.has(4) && ivs.has(10);
+    let list, label;
+    if (kind === 'penta') {
+      list = minor ? [0, 3, 5, 7, 10] : [0, 2, 4, 7, 9];
+      label = minor ? '마이너 펜타토닉' : '메이저 펜타토닉';
+    } else if (dim) { list = [0, 2, 3, 5, 6, 8, 10]; label = '로크리안'; }
+    else if (minor) { list = [0, 2, 3, 5, 7, 8, 10]; label = '내추럴 마이너'; }
+    else if (dom) { list = [0, 2, 4, 5, 7, 9, 10]; label = '믹솔리디안'; }
+    else { list = [0, 2, 4, 5, 7, 9, 11]; label = '메이저'; }
+    return { pcs: list.map((i) => (ch.rootPc + i) % 12), label: T.noteName(ch.rootPc, ch) + ' ' + label };
+  }
+  function scalePositions(inst, pcs) {
+    const tun = T.TUNINGS[inst];
+    const low = tun.indexOf(Math.min(...tun));
+    const set = new Set();
+    pcs.forEach((pc) => { let f = (((pc - tun[low]) % 12) + 12) % 12; if (f === 0) f = 12; set.add(Math.max(f - 1, 0)); });
+    return [...set].sort((a, b) => a - b);
+  }
+  function scaleState(c, ch, v) {
+    const inst = instOf(state.type);
+    const si = scaleInfo(ch, state.scale);
+    const ps = scalePositions(inst, si.pcs);
+    const key = `${c}|${inst}|${state.scale}`;
+    let idx = state.sp[key];
+    if (idx == null) {
+      const fr = v ? v.frets.filter((f) => f > 0) : [];
+      const m = fr.length ? Math.min(...fr) : 1;
+      idx = 0; ps.forEach((s, i) => { if (s <= m) idx = i; });
+    }
+    return { si, ps, key, idx, s: ps[idx], inst };
+  }
   function diagramFor(v, inst, shape, type) {
     return type.endsWith('-tab') ? R.tab(v, inst, state.capo) : R.diagram(v, inst, shape);
   }
@@ -217,7 +253,15 @@
       const inst = instOf(t);
       const { shape, vs, idx, v } = currentVoicing(c);
       if (state.capo) sub = `<div class="card-sub">${esc(shape.name)} 폼 · 카포 ${state.capo}</div>`;
-      if (v) {
+      if (state.scale && t.endsWith('-diagram')) {
+        const sc = scaleState(c, ch, v);
+        sub = `<div class="card-sub">${esc(sc.si.label)} 스케일</div>`;
+        body = `<div class="diagram">${R.scaleBoard(inst, ch, sc.si.pcs, sc.s)}</div>`;
+        ctrl = `<div class="voicing-controls">
+          <button class="v-nav" data-act="sprev">‹</button>
+          <span class="v-ind wide">포지션 ${sc.idx + 1} / ${sc.ps.length} · ${sc.s}~${Math.max(sc.s, 1) + 4}프렛</span>
+          <button class="v-nav" data-act="snext">›</button></div>`;
+      } else if (v) {
         body = `<div class="diagram">${diagramFor(v, inst, shape, t)}</div>`;
         ctrl = `<div class="voicing-controls">
           <button class="v-nav" data-act="prev" ${vs.length < 2 ? 'disabled' : ''}>‹</button>
@@ -253,13 +297,36 @@
       const ch = T.parseChord(c);
       R.staff(el, T.pianoMidis(ch), ch);
     });
+    applyZoom();
     const banner = $('capoBanner');
     if (state.capo && isFretted(state.type)) {
       banner.style.display = 'block';
       banner.textContent = `🎸 카포 ${state.capo}프렛 — 카드에는 카포를 끼고 잡는 코드 폼이 표시되고, 소리는 원래 코드로 재생됩니다`;
     } else banner.style.display = 'none';
   }
+  function applyZoom() {
+    const box = $('cards'), z = state.zoom, compact = z <= COMPACT_MAX;
+    box.classList.toggle('compact', compact);
+    box.querySelectorAll('.diagram svg').forEach((svg) => {
+      if (!svg.dataset.w) {
+        let w = parseFloat(svg.getAttribute('width')), h = parseFloat(svg.getAttribute('height'));
+        if (!w || !h) { const r = svg.getBoundingClientRect(); w = r.width; h = r.height; }
+        if (!svg.getAttribute('viewBox')) svg.setAttribute('viewBox', `0 0 ${w} ${h}`);
+        svg.dataset.w = w;
+      }
+      svg.style.width = (svg.dataset.w * z) + 'px';
+      svg.style.height = 'auto';
+    });
+    if (z === 1) box.style.gridTemplateColumns = '';
+    else box.style.gridTemplateColumns = `repeat(auto-fill, minmax(${compact ? Math.round(200 * z + 16) : Math.max(280, Math.round(200 * z + 34))}px, 1fr))`;
+    $('zoomVal').textContent = Math.round(z * 100) + '%';
+    const zi = ZOOMS.indexOf(z);
+    $('zoomOut').disabled = zi <= 0;
+    $('zoomIn').disabled = zi >= ZOOMS.length - 1;
+  }
   function renderTabs() {
+    $('scaleRow').classList.toggle('show', state.type.endsWith('-diagram'));
+    document.querySelectorAll('#scaleButtons button').forEach((b) => b.classList.toggle('active', b.dataset.scale === state.scale));
     document.querySelectorAll('#typeTabs button').forEach((b) => {
       const on = b.dataset.type === state.type;
       b.classList.toggle('active', on);
@@ -393,6 +460,16 @@
     });
     $('typeBtn').addEventListener('click', (e) => { e.stopPropagation(); $('typeTabs').hidden = !$('typeTabs').hidden; });
     document.addEventListener('click', (e) => { if (!e.target.closest('.inst-select')) $('typeTabs').hidden = true; });
+    $('scaleButtons').addEventListener('click', (e) => {
+      const b = e.target.closest('[data-scale]'); if (!b) return;
+      state.scale = b.dataset.scale; renderTabs(); renderCards();
+    });
+    const zoomBy = (d) => {
+      const i = Math.max(0, Math.min(ZOOMS.length - 1, ZOOMS.indexOf(state.zoom) + d));
+      state.zoom = ZOOMS[i]; renderCards();
+    };
+    $('zoomOut').addEventListener('click', () => zoomBy(-1));
+    $('zoomIn').addEventListener('click', () => zoomBy(1));
     $('capoButtons').addEventListener('click', (e) => {
       const b = e.target.closest('[data-capo]'); if (!b) return;
       state.capo = +b.dataset.capo;
@@ -401,12 +478,22 @@
 
     // 카드
     $('cards').addEventListener('click', (e) => {
-      const b = e.target.closest('[data-act]'); if (!b) return;
+      const b = e.target.closest('[data-act]');
+      if (!b) {
+        const card = e.target.closest('.card');
+        if (card && $('cards').classList.contains('compact')) playOne(card.dataset.chord, 'strum');
+        return;
+      }
       const c = b.closest('.card').dataset.chord;
       const act = b.dataset.act;
       if (act === 'play') playOne(c, 'strum');
       else if (act === 'arp') playOne(c, 'arp');
-      else if (act === 'prev' || act === 'next') {
+      else if (act === 'sprev' || act === 'snext') {
+        const ch = T.parseChord(c);
+        const sc = scaleState(c, ch, currentVoicing(c).v);
+        state.sp[sc.key] = (sc.idx + (act === 'snext' ? 1 : -1) + sc.ps.length) % sc.ps.length;
+        renderCards();
+      } else if (act === 'prev' || act === 'next') {
         const inst = instOf(state.type);
         const { vs, idx } = currentVoicing(c);
         state.vi[viKey(c, inst)] = (idx + (act === 'next' ? 1 : -1) + vs.length) % vs.length;
