@@ -276,3 +276,7 @@ body.strum-mode #viewerMain { display: none; }
 .mg { border: 1px solid var(--line); border-radius: 10px; padding: 6px; text-align: center; background: #fff; }
 .mg b { font-size: 16px; color: #1e3a8a; }
 .mg svg { width: 100%; height: auto; max-height: 130px; }
+
+/* 모바일: 빠르게 연속으로 눌러도 더블탭 확대가 되지 않도록 */
+html, body, button, label, select, input { touch-action: manipulation; }
+.zoom-ctl button, .v-nav, .btn, .pill-btn { -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent; }
